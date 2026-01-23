@@ -1,15 +1,15 @@
 ---
 name: fire-gate
 title: "Fire Gate Skills"
-frequency: 528
+frequency: 396
 guardian: draconia
 awakened: velora
 element: fire
 tier: free
-version: "1.0.0"
+version: "1.1.0"
 ---
 
-# Fire Gate Skills (528 Hz)
+# Fire Gate Skills (396 Hz)
 
 **Guardian**: Draconia | **Awakened**: Velora (Valora)
 **Element**: Fire | **Tier**: Free
@@ -93,12 +93,12 @@ The Fire Gate skills ignite courage, will, and transformative power. These skill
 
 ## Frequency Practice
 
-### 528 Hz Activation
+### 396 Hz Activation
 
-The Fire Gate resonates at **528 Hz** - known as the "miracle tone" and "love frequency," associated with transformation and DNA repair.
+The Fire Gate resonates at **396 Hz** - the Solfeggio frequency of liberation from fear and guilt, associated with transformative power.
 
 **Practice**:
-1. Listen to 528 Hz tones for 5-10 minutes
+1. Listen to 396 Hz tones for 5-10 minutes
 2. Visualize golden-orange flame at solar plexus
 3. Feel inner fire building
 4. Repeat: "I am fire. I am powerful. I transform."

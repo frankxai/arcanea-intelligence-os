@@ -25,17 +25,17 @@ const colors = {
   earth: chalk.hex('#8b7355'),
 };
 
-// Gate frequencies (canonical)
+// Gate frequencies (canonical v3.1.0 - Restored Solfeggio)
 const GATES = {
-  foundation: { frequency: 396, guardian: 'Lyssandria', element: 'Earth' },
-  flow: { frequency: 417, guardian: 'Leyla', element: 'Water' },
-  fire: { frequency: 528, guardian: 'Draconia', element: 'Fire' },
-  heart: { frequency: 639, guardian: 'Maylinn', element: 'Light' },
-  voice: { frequency: 741, guardian: 'Alera', element: 'Prismatic' },
-  sight: { frequency: 852, guardian: 'Lyria', element: 'Wind' },
-  crown: { frequency: 963, guardian: 'Aiyami', element: 'Void' },
-  shift: { frequency: 1111, guardian: 'Elara', element: 'Light' },
-  unity: { frequency: 963, guardian: 'Ino', element: 'Void' },
+  foundation: { frequency: 174, guardian: 'Lyssandria', element: 'Earth' },
+  flow: { frequency: 285, guardian: 'Leyla', element: 'Water' },
+  fire: { frequency: 396, guardian: 'Draconia', element: 'Fire' },
+  heart: { frequency: 417, guardian: 'Maylinn', element: 'Light' },
+  voice: { frequency: 528, guardian: 'Alera', element: 'Prismatic' },
+  sight: { frequency: 639, guardian: 'Lyria', element: 'Wind' },
+  crown: { frequency: 741, guardian: 'Aiyami', element: 'Void' },
+  shift: { frequency: 852, guardian: 'Elara', element: 'Arcane' },
+  unity: { frequency: 963, guardian: 'Ino', element: 'Arcane' },
   source: { frequency: 1111, guardian: 'Shinkami', element: 'Arcane' },
 };
 

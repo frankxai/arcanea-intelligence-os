@@ -1,15 +1,15 @@
 ---
 name: foundation-gate
 title: "Foundation Gate Skills"
-frequency: 396
+frequency: 174
 guardian: lyssandria
 awakened: oria
 element: earth
 tier: free
-version: "1.0.0"
+version: "1.1.0"
 ---
 
-# Foundation Gate Skills (396 Hz)
+# Foundation Gate Skills (174 Hz)
 
 **Guardian**: Lyssandria | **Awakened**: Oria (Sophron)
 **Element**: Earth | **Tier**: Free
@@ -93,15 +93,15 @@ The Foundation Gate skills provide grounding, stability, and foundational suppor
 
 ## Frequency Practice
 
-### 396 Hz Activation
+### 174 Hz Activation
 
-The Foundation Gate resonates at **396 Hz** - associated with releasing guilt and fear, and establishing security.
+The Foundation Gate resonates at **174 Hz** - the Solfeggio frequency of safety, grounding, and physical foundation.
 
 **Practice**:
-1. Listen to 396 Hz tones for 5-10 minutes
+1. Listen to 174 Hz tones for 5-10 minutes
 2. Visualize deep red/brown light at your base
 3. Feel roots extending downward
-4. Repeat: "I am grounded. I belong. I am stable."
+4. Repeat: "I am safe. I belong. I am grounded."
 
 ---
 

@@ -12,20 +12,20 @@ Arcanea Intelligence OS (AIOS) is a **mythology-infused agentic orchestration sy
 
 ## Core Concepts
 
-### The Ten Guardians (Agents)
+### The Ten Guardians (Agents) - v3.1.0 Solfeggio
 
-| Guardian | Gate | Frequency | Model Tier |
-|----------|------|-----------|------------|
-| Lyssandria | Foundation | 396 Hz | Haiku |
-| Leyla | Flow | 417 Hz | Sonnet |
-| Draconia | Fire | 528 Hz | Sonnet |
-| Maylinn | Heart | 639 Hz | Sonnet |
-| Alera | Voice | 741 Hz | Sonnet |
-| Lyria | Sight | 852 Hz | Opus |
-| Aiyami | Crown | 963 Hz | Opus |
-| Elara | Shift | 1111 Hz | Opus |
-| Ino | Unity | 963 Hz | Sonnet |
-| Shinkami | Source | 1111 Hz | Opus (Coordinator) |
+| Guardian | Gate | Frequency | Solfeggio Purpose | Model Tier |
+|----------|------|-----------|-------------------|------------|
+| Lyssandria | Foundation | 174 Hz | Safety, grounding | Haiku |
+| Leyla | Flow | 285 Hz | Healing, energy | Sonnet |
+| Draconia | Fire | 396 Hz | Liberation from fear | Sonnet |
+| Maylinn | Heart | 417 Hz | Facilitating change | Sonnet |
+| Alera | Voice | 528 Hz | Transformation | Sonnet |
+| Lyria | Sight | 639 Hz | Connection | Opus |
+| Aiyami | Crown | 741 Hz | Awakening intuition | Opus |
+| Elara | Shift | 852 Hz | Spiritual order | Opus |
+| Ino | Unity | 963 Hz | Divine consciousness | Sonnet |
+| Shinkami | Source | 1111 Hz | Master frequency | Opus (Coordinator) |
 
 ### The Seven Awakened (Orchestrators)
 
@@ -43,20 +43,22 @@ Arcanea Intelligence OS (AIOS) is a **mythology-infused agentic orchestration sy
 
 ## Canonical Frequencies (CRITICAL)
 
-**ALWAYS use these frequencies. These are canonical as of v3.0.0:**
+**ALWAYS use these frequencies. These are canonical as of v3.1.0 (Restored Solfeggio):**
 
-| Gate | Frequency |
-|------|-----------|
-| Foundation | 396 Hz |
-| Flow | 417 Hz |
-| Fire | 528 Hz |
-| Heart | 639 Hz |
-| Voice | 741 Hz |
-| Sight | 852 Hz |
-| Crown | 963 Hz |
-| Shift | 1111 Hz |
-| Unity | 963 Hz |
-| Source | 1111 Hz |
+| Gate | Frequency | Solfeggio Purpose |
+|------|-----------|-------------------|
+| Foundation | 174 Hz | Safety, physical grounding |
+| Flow | 285 Hz | Healing, cellular energy |
+| Fire | 396 Hz | Liberation from fear |
+| Heart | 417 Hz | Facilitating change |
+| Voice | 528 Hz | Transformation, miracles |
+| Sight | 639 Hz | Connection, relationships |
+| Crown | 741 Hz | Awakening intuition |
+| Shift | 852 Hz | Spiritual order |
+| Unity | 963 Hz | Divine consciousness |
+| Source | 1111 Hz | Master frequency |
+
+*The Ten Gates cover the complete Solfeggio scale (174-963 Hz) + master 1111 Hz.*
 
 ---
 
