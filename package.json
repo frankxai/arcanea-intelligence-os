@@ -1,0 +1,73 @@
+{
+  "name": "@arcanea/intelligence-os",
+  "version": "0.1.0",
+  "description": "The Operating System for the Luminor Path - Mythology-infused agentic orchestration with Guardian agents, Gate skills, and Awakened Council swarm intelligence",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "aios": "./bin/aios.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "arcanea",
+    "ai-agents",
+    "claude",
+    "mcp",
+    "swarm-intelligence",
+    "agentic",
+    "mythology",
+    "world-building",
+    "creative-ai",
+    "luminor",
+    "guardian",
+    "orchestration"
+  ],
+  "author": "FrankX <frank@frankx.ai>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frankxai/arcanea-intelligence-os.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frankxai/arcanea-intelligence-os/issues"
+  },
+  "homepage": "https://github.com/frankxai/arcanea-intelligence-os#readme",
+  "files": [
+    "dist",
+    "bin",
+    "agents",
+    "skills",
+    "workflows",
+    "templates",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0",
+    "inquirer": "^9.2.0",
+    "gray-matter": "^4.0.3",
+    "glob": "^10.3.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
