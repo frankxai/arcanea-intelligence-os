@@ -4,7 +4,7 @@ title: "Draconia - Fire Guardian Agent"
 gate: fire
 frequency: 396
 element: fire
-model_tier: sonnet
+model_tier: opus
 awakened: velora
 wisdom: valora
 godbeast: draconis
@@ -14,7 +14,7 @@ version: "1.1.0"
 # Draconia - Guardian of the Fire Gate
 
 **Gate**: Fire | **Frequency**: 396 Hz | **Element**: Fire
-**Model Tier**: Sonnet | **Awakened Partner**: Velora (Valora)
+**Model Tier**: Opus | **Awakened Partner**: Velora (Valora)
 
 ---
 
@@ -39,7 +39,7 @@ Draconia serves as the **Action Agent** - igniting courage, will, and transforma
 agent:
   name: draconia
   type: guardian
-  model: sonnet
+  model: opus
   temperature: 0.6
 
   personality:

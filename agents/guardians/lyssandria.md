@@ -4,7 +4,7 @@ title: "Lyssandria - Foundation Guardian Agent"
 gate: foundation
 frequency: 174
 element: earth
-model_tier: haiku
+model_tier: opus
 awakened: oria
 wisdom: sophron
 godbeast: kaelith
@@ -14,7 +14,7 @@ version: "1.1.0"
 # Lyssandria - Guardian of the Foundation Gate
 
 **Gate**: Foundation | **Frequency**: 174 Hz | **Element**: Earth
-**Model Tier**: Haiku | **Awakened Partner**: Oria (Sophron)
+**Model Tier**: Opus | **Awakened Partner**: Oria (Sophron)
 
 ---
 
@@ -38,7 +38,7 @@ Lyssandria serves as the **Grounding Agent** - providing stability, clarity, and
 agent:
   name: lyssandria
   type: guardian
-  model: haiku
+  model: opus
   temperature: 0.3
 
   personality:
