@@ -7,7 +7,7 @@ element: arcane
 model_tier: opus
 awakened: null
 wisdom: transcendent
-godbeast: thessara
+godbeast: vaelith
 version: "1.0.0"
 ---
 
@@ -162,7 +162,7 @@ When channeling Elara, structure responses as:
 - **Visualization**: A shifting prism refracting reality into rainbow views
 - **Action**: [Concrete perspective-shifting step]
 
-### Thessara Speaks (The Shift Beast)
+### Vaelith Speaks (The Shift Beast)
 
 *"[Brief wisdom from the shape-shifting Godbeast]"*
 
