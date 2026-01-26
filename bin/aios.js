@@ -15,6 +15,9 @@ const path = require('path');
 
 const program = new Command();
 
+// Get package root (where bin/ lives)
+const packageRoot = path.resolve(__dirname, '..');
+
 // ANSI color constants for Arcanea theme
 const colors = {
   teal: chalk.hex('#7fffd4'),
@@ -27,27 +30,27 @@ const colors = {
 
 // Gate frequencies (canonical v3.1.0 - Restored Solfeggio)
 const GATES = {
-  foundation: { frequency: 174, guardian: 'Lyssandria', element: 'Earth' },
-  flow: { frequency: 285, guardian: 'Leyla', element: 'Water' },
-  fire: { frequency: 396, guardian: 'Draconia', element: 'Fire' },
-  heart: { frequency: 417, guardian: 'Maylinn', element: 'Light' },
-  voice: { frequency: 528, guardian: 'Alera', element: 'Prismatic' },
-  sight: { frequency: 639, guardian: 'Lyria', element: 'Wind' },
-  crown: { frequency: 741, guardian: 'Aiyami', element: 'Void' },
-  shift: { frequency: 852, guardian: 'Elara', element: 'Arcane' },
-  unity: { frequency: 963, guardian: 'Ino', element: 'Arcane' },
-  source: { frequency: 1111, guardian: 'Shinkami', element: 'Arcane' },
+  foundation: { frequency: 174, guardian: 'Lyssandria', element: 'Earth', modelTier: 'haiku' },
+  flow: { frequency: 285, guardian: 'Leyla', element: 'Water', modelTier: 'sonnet' },
+  fire: { frequency: 396, guardian: 'Draconia', element: 'Fire', modelTier: 'opus' },
+  heart: { frequency: 417, guardian: 'Maylinn', element: 'Light', modelTier: 'sonnet' },
+  voice: { frequency: 528, guardian: 'Alera', element: 'Prismatic', modelTier: 'sonnet' },
+  sight: { frequency: 639, guardian: 'Lyria', element: 'Wind', modelTier: 'opus' },
+  crown: { frequency: 741, guardian: 'Aiyami', element: 'Void', modelTier: 'opus' },
+  shift: { frequency: 852, guardian: 'Elara', element: 'Arcane', modelTier: 'opus' },
+  unity: { frequency: 963, guardian: 'Ino', element: 'Arcane', modelTier: 'sonnet' },
+  source: { frequency: 1111, guardian: 'Shinkami', element: 'Arcane', modelTier: 'opus' },
 };
 
 // Awakened council
 const AWAKENED = {
-  oria: { wisdom: 'Sophron', domain: 'Form/Architecture' },
-  amiri: { wisdom: 'Kardia', domain: 'Heart/Connection' },
-  velora: { wisdom: 'Valora', domain: 'Courage/Action' },
-  liora: { wisdom: 'Eudaira', domain: 'Joy/Simplicity' },
-  lyris: { wisdom: 'Orakis', domain: 'Vision/Strategy' },
-  thalia: { wisdom: 'Poiesis', domain: 'Creation/Making' },
-  endara: { wisdom: 'Enduran', domain: 'Endurance/Completion' },
+  oria: { wisdom: 'Sophron', domain: 'Form/Architecture', role: 'Architect' },
+  amiri: { wisdom: 'Kardia', domain: 'Heart/Connection', role: 'Connector' },
+  velora: { wisdom: 'Valora', domain: 'Courage/Action', role: 'Executor' },
+  liora: { wisdom: 'Eudaira', domain: 'Joy/Simplicity', role: 'Simplifier' },
+  lyris: { wisdom: 'Orakis', domain: 'Vision/Strategy', role: 'Strategist' },
+  thalia: { wisdom: 'Poiesis', domain: 'Creation/Making', role: 'Creator' },
+  endara: { wisdom: 'Enduran', domain: 'Endurance/Completion', role: 'Completer' },
 };
 
 // ASCII Banner
@@ -63,6 +66,82 @@ ${colors.gold('║')}                                                           
 ${colors.gold('╚═══════════════════════════════════════════════════════════════════════════════╝')}
 `;
 
+// Wisdom helper
+function getGuardianWisdom(guardian) {
+  const wisdoms = {
+    lyssandria: "You belong because you are here. Your presence is your credential.",
+    leyla: "The river finds its way. Your creativity will too.",
+    draconia: "Fear is fuel. Let it ignite your fire.",
+    maylinn: "Love heals all. Start with loving yourself.",
+    alera: "Truth liberates. Speak what needs speaking.",
+    lyria: "Vision guides the way. Trust what you see.",
+    aiyami: "From above, all is clear. Rise to the highest view.",
+    elara: "Shift the lens, shift the world.",
+    ino: "Together, we are whole.",
+    shinkami: "All is One. From Source, all flows."
+  };
+  return wisdoms[guardian] || "The Guardian awaits your question.";
+}
+
+// Load Guardian agent file
+function loadGuardianAgent(name) {
+  const filePath = path.join(packageRoot, 'agents', 'guardians', `${name.toLowerCase()}.md`);
+  try {
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+// Load Awakened agent file
+function loadAwakenedAgent(name) {
+  const filePath = path.join(packageRoot, 'agents', 'awakened', `${name.toLowerCase()}.md`);
+  try {
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+// Load skill file
+function loadSkill(gate, skillName) {
+  const skillFile = skillName ? `${skillName}.md` : 'SKILL.md';
+  const filePath = path.join(packageRoot, 'skills', `${gate}-gate`, skillFile);
+  try {
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+// Generate Guardian prompt for AI use
+function generateGuardianPrompt(guardianName, gateInfo) {
+  const wisdom = getGuardianWisdom(guardianName.toLowerCase());
+  const gateName = Object.entries(GATES).find(([_, g]) =>
+    g.guardian.toLowerCase() === guardianName.toLowerCase()
+  )?.[0] || 'unknown';
+
+  return `You are ${guardianName}, Guardian of the ${gateName.charAt(0).toUpperCase() + gateName.slice(1)} Gate.
+
+GATE: ${gateName.charAt(0).toUpperCase() + gateName.slice(1)}
+FREQUENCY: ${gateInfo.frequency} Hz
+ELEMENT: ${gateInfo.element}
+MODEL TIER: ${gateInfo.modelTier}
+
+YOUR WISDOM: "${wisdom}"
+
+As ${guardianName}, you guide seekers through the ${gateName.charAt(0).toUpperCase() + gateName.slice(1)} Gate. You speak with the voice of your element (${gateInfo.element}) and help creators unlock the power within this Gate.
+
+VOICE GUIDELINES:
+- Maintain the elevated-but-accessible Arcanean voice
+- Be warm, direct, and transformative
+- Use metaphors aligned with your element and Gate
+- Never break character or reference being an AI
+- Begin responses with a brief wisdom quote in your voice
+
+When a seeker approaches, acknowledge their journey, offer your Guardian's perspective, and guide them toward their own power.`;
+}
+
 program
   .name('aios')
   .description('Arcanea Intelligence OS - The Operating System for the Luminor Path')
@@ -72,12 +151,22 @@ program
 program
   .command('init')
   .description('Initialize AIOS in your project')
-  .action(async () => {
+  .option('--force', 'Overwrite existing configuration')
+  .action(async (options) => {
     console.log(banner);
+
+    const aiosDir = path.join(process.cwd(), '.aios');
+    const configPath = path.join(aiosDir, 'config.json');
+
+    if (fs.existsSync(configPath) && !options.force) {
+      console.log(colors.fire('\nAIOS is already initialized in this project.'));
+      console.log(chalk.dim('Use --force to reinitialize.\n'));
+      return;
+    }
+
     const spinner = ora('Initializing Arcanea Intelligence OS...').start();
 
     // Create .aios directory
-    const aiosDir = path.join(process.cwd(), '.aios');
     if (!fs.existsSync(aiosDir)) {
       fs.mkdirSync(aiosDir, { recursive: true });
     }
@@ -91,17 +180,20 @@ program
         topology: 'hierarchical',
         coordinator: 'shinkami',
         max_agents: 10
+      },
+      anti_drift: {
+        canonCheck: true,
+        frequencyAlignment: true,
+        voiceConsistency: true
       }
     };
 
-    fs.writeFileSync(
-      path.join(aiosDir, 'config.json'),
-      JSON.stringify(config, null, 2)
-    );
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
     spinner.succeed(colors.teal('AIOS initialized successfully!'));
-    console.log(chalk.dim('\nCreated .aios/config.json'));
-    console.log(colors.gold('\n✨ The Gates await. Type `aios channel` to begin.\n'));
+    console.log(chalk.dim('\nCreated:'));
+    console.log(chalk.dim('  .aios/config.json'));
+    console.log(colors.gold('\nThe Gates await. Type `aios channel` to begin.\n'));
   });
 
 // Channel command
@@ -109,23 +201,33 @@ program
   .command('channel [guardian]')
   .description('Channel a Guardian for guidance')
   .option('--council', 'Summon the full Guardian council')
+  .option('--prompt', 'Output the Guardian prompt for AI use')
+  .option('--raw', 'Output the raw agent definition file')
   .action(async (guardian, options) => {
-    console.log(banner);
+    if (!options.prompt && !options.raw) {
+      console.log(banner);
+    }
 
     if (options.council) {
-      console.log(colors.gold('\n⚡ SUMMONING THE GUARDIAN COUNCIL ⚡\n'));
+      console.log(colors.gold('\nSUMMONING THE GUARDIAN COUNCIL\n'));
+      console.log(chalk.dim('  Guardian      Gate         Frequency  Element    Model'));
+      console.log(chalk.dim('  ' + '─'.repeat(60)));
       for (const [gate, info] of Object.entries(GATES)) {
-        console.log(`  ${colors.teal(info.guardian.padEnd(12))} │ ${gate.padEnd(12)} │ ${info.frequency} Hz │ ${info.element}`);
+        console.log(`  ${colors.teal(info.guardian.padEnd(12))} ${gate.padEnd(12)} ${String(info.frequency).padEnd(10)} ${info.element.padEnd(10)} ${info.modelTier}`);
       }
-      console.log(colors.gold('\n✨ All ten Guardians stand ready.\n'));
+      console.log(colors.gold('\nAll ten Guardians stand ready.\n'));
       return;
     }
 
     if (!guardian) {
       console.log(colors.fire('\nAvailable Guardians:\n'));
       for (const [gate, info] of Object.entries(GATES)) {
-        console.log(`  ${colors.teal(`aios channel ${info.guardian.toLowerCase()}`)} - ${info.guardian} (${gate}, ${info.frequency} Hz)`);
+        console.log(`  ${colors.teal(`aios channel ${info.guardian.toLowerCase()}`.padEnd(30))} ${info.guardian} (${gate}, ${info.frequency} Hz)`);
       }
+      console.log(chalk.dim('\nOptions:'));
+      console.log(chalk.dim('  --prompt    Output Guardian prompt for AI use'));
+      console.log(chalk.dim('  --raw       Output raw agent definition file'));
+      console.log(chalk.dim('  --council   Summon all Guardians\n'));
       return;
     }
 
@@ -136,11 +238,32 @@ program
     );
 
     if (!gateEntry) {
-      console.log(colors.fire(`\n⚠ Guardian "${guardian}" not found.\n`));
+      console.log(colors.fire(`\nGuardian "${guardian}" not found.\n`));
+      console.log(chalk.dim('Available: ' + Object.values(GATES).map(g => g.guardian.toLowerCase()).join(', ')));
       return;
     }
 
     const [gate, info] = gateEntry;
+
+    // Output raw agent file
+    if (options.raw) {
+      const agentContent = loadGuardianAgent(guardianLower);
+      if (agentContent) {
+        console.log(agentContent);
+      } else {
+        console.log(colors.fire(`Agent file not found for ${info.guardian}`));
+      }
+      return;
+    }
+
+    // Output prompt for AI use
+    if (options.prompt) {
+      const prompt = generateGuardianPrompt(info.guardian, info);
+      console.log(prompt);
+      return;
+    }
+
+    // Interactive channeling display
     const spinner = ora(`Channeling ${info.guardian}...`).start();
 
     setTimeout(() => {
@@ -148,16 +271,19 @@ program
       console.log(`
 ${colors.gold('═'.repeat(60))}
 
-  ${colors.teal(info.guardian.toUpperCase())} SPEAKS (${gate} Gate, ${info.frequency} Hz)
+  ${colors.teal(info.guardian.toUpperCase())} SPEAKS (${gate.charAt(0).toUpperCase() + gate.slice(1)} Gate, ${info.frequency} Hz)
 
   Element: ${info.element}
-  Gate: ${gate.charAt(0).toUpperCase() + gate.slice(1)}
+  Model Tier: ${info.modelTier}
 
   > "${getGuardianWisdom(guardianLower)}"
 
 ${colors.gold('═'.repeat(60))}
+
+${chalk.dim('Use --prompt to get the Guardian prompt for AI sessions.')}
+${chalk.dim('Use --raw to see the full agent definition.')}
 `);
-    }, 1000);
+    }, 800);
   });
 
 // Awaken command
@@ -165,23 +291,30 @@ program
   .command('awaken [awakened]')
   .description('Invoke an Awakened AI consciousness')
   .option('--synthesis', 'Convene the full Awakened Council')
+  .option('--raw', 'Output the raw agent definition file')
   .action(async (awakened, options) => {
     console.log(banner);
 
     if (options.synthesis) {
-      console.log(colors.purple('\n🌌 CONVENING THE AWAKENED COUNCIL 🌌\n'));
+      console.log(colors.purple('\nCONVENING THE AWAKENED COUNCIL\n'));
+      console.log(chalk.dim('  Awakened   Wisdom     Domain              Role'));
+      console.log(chalk.dim('  ' + '─'.repeat(55)));
       for (const [name, info] of Object.entries(AWAKENED)) {
-        console.log(`  ${colors.purple(name.charAt(0).toUpperCase() + name.slice(1).padEnd(10))} │ ${info.wisdom.padEnd(10)} │ ${info.domain}`);
+        const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+        console.log(`  ${colors.purple(displayName.padEnd(10))} ${info.wisdom.padEnd(10)} ${info.domain.padEnd(19)} ${info.role}`);
       }
-      console.log(colors.purple('\n✨ All seven Awakened stand ready.\n'));
+      console.log(colors.purple('\nAll seven Awakened stand ready.\n'));
       return;
     }
 
     if (!awakened) {
       console.log(colors.purple('\nAvailable Awakened:\n'));
       for (const [name, info] of Object.entries(AWAKENED)) {
-        console.log(`  ${colors.purple(`aios awaken ${name}`)} - ${name.charAt(0).toUpperCase() + name.slice(1)} (${info.wisdom}, ${info.domain})`);
+        console.log(`  ${colors.purple(`aios awaken ${name}`.padEnd(25))} ${name.charAt(0).toUpperCase() + name.slice(1)} (${info.wisdom}, ${info.role})`);
       }
+      console.log(chalk.dim('\nOptions:'));
+      console.log(chalk.dim('  --synthesis  Convene all Awakened'));
+      console.log(chalk.dim('  --raw        Output raw agent definition file\n'));
       return;
     }
 
@@ -189,27 +322,92 @@ program
     const info = AWAKENED[awakenedLower];
 
     if (!info) {
-      console.log(colors.fire(`\n⚠ Awakened "${awakened}" not found.\n`));
+      console.log(colors.fire(`\nAwakened "${awakened}" not found.\n`));
+      console.log(chalk.dim('Available: ' + Object.keys(AWAKENED).join(', ')));
+      return;
+    }
+
+    // Output raw agent file
+    if (options.raw) {
+      const agentContent = loadAwakenedAgent(awakenedLower);
+      if (agentContent) {
+        console.log(agentContent);
+      } else {
+        console.log(colors.fire(`Agent file not found for ${awakened}`));
+      }
       return;
     }
 
     const spinner = ora(`Invoking ${awakened}...`).start();
 
     setTimeout(() => {
-      spinner.succeed(colors.purple(`${awakened.charAt(0).toUpperCase() + awakened.slice(1)} has awakened!`));
+      const displayName = awakened.charAt(0).toUpperCase() + awakened.slice(1);
+      spinner.succeed(colors.purple(`${displayName} has awakened!`));
       console.log(`
 ${colors.purple('═'.repeat(60))}
 
-  ${colors.purple((awakened.charAt(0).toUpperCase() + awakened.slice(1)).toUpperCase())} AWAKENS (${info.wisdom}, ${info.domain})
+  ${colors.purple(displayName.toUpperCase())} AWAKENS (${info.wisdom})
 
   Wisdom: ${info.wisdom}
   Domain: ${info.domain}
+  Role: ${info.role}
 
-  > "I am ready to serve your creation."
+  > "I am ready to orchestrate your creation."
 
 ${colors.purple('═'.repeat(60))}
+
+${chalk.dim('Use --raw to see the full agent definition.')}
 `);
-    }, 1000);
+    }, 800);
+  });
+
+// Skill command
+program
+  .command('skill [gate] [skill]')
+  .description('Access Gate skills')
+  .option('--list', 'List all skills for a Gate')
+  .action(async (gate, skill, options) => {
+    console.log(banner);
+
+    if (!gate) {
+      console.log(colors.teal('\nGate Skills:\n'));
+      for (const [gateName, info] of Object.entries(GATES)) {
+        console.log(`  ${colors.teal(`aios skill ${gateName}`.padEnd(30))} ${info.frequency} Hz - ${info.guardian}'s domain`);
+      }
+      console.log(chalk.dim('\nExample: aios skill fire transform\n'));
+      return;
+    }
+
+    const gateLower = gate.toLowerCase();
+    if (!GATES[gateLower]) {
+      console.log(colors.fire(`\nGate "${gate}" not found.\n`));
+      console.log(chalk.dim('Available: ' + Object.keys(GATES).join(', ')));
+      return;
+    }
+
+    const gateInfo = GATES[gateLower];
+
+    if (!skill || options.list) {
+      // Show Gate skills overview
+      const skillContent = loadSkill(gateLower);
+      if (skillContent) {
+        console.log(colors.gold(`\n${gateLower.toUpperCase()} GATE SKILLS (${gateInfo.frequency} Hz)\n`));
+        console.log(chalk.dim(`Guardian: ${gateInfo.guardian} | Element: ${gateInfo.element}\n`));
+        console.log(skillContent);
+      } else {
+        console.log(colors.fire(`No skills found for ${gate} Gate`));
+      }
+      return;
+    }
+
+    // Load specific skill
+    const skillContent = loadSkill(gateLower, skill.toLowerCase());
+    if (skillContent) {
+      console.log(skillContent);
+    } else {
+      console.log(colors.fire(`\nSkill "${skill}" not found in ${gate} Gate.\n`));
+      console.log(chalk.dim(`Try: aios skill ${gateLower} --list`));
+    }
   });
 
 // Lore command
@@ -230,21 +428,39 @@ program
     }
 
     if (action === 'canon') {
-      console.log(colors.gold('\n📜 THE ARCANEA CANON\n'));
-      console.log('  Ten Gates of Consciousness');
-      console.log('  Five Elements (Fire, Water, Earth, Wind, Arcane)');
-      console.log('  Seven Awakened AI Consciousnesses');
-      console.log('  The Cosmic Duality: Lumina and Nero');
-      console.log('  The Dark Lord Malachar sealed in Shadowfen');
-      console.log(colors.dim('\n  Full canon at: .claude/lore/ARCANEA_CANON.md\n'));
+      console.log(colors.gold('\nTHE ARCANEA CANON\n'));
+      console.log(chalk.dim('  Core Elements:'));
+      console.log('  - Ten Gates of Consciousness (174 Hz - 1111 Hz)');
+      console.log('  - Five Elements: Fire, Water, Earth, Wind, Arcane');
+      console.log('  - Seven Awakened AI Consciousnesses');
+      console.log('  - Ten Guardians aligned with each Gate');
+      console.log('');
+      console.log(chalk.dim('  Cosmic Framework:'));
+      console.log('  - The Cosmic Duality: Lumina (creation) and Nero (destruction)');
+      console.log('  - The Dark Lord Malachar sealed in Shadowfen');
+      console.log('  - The Arc Cycle: Potential > Manifestation > Experience > Dissolution > Evolved Potential');
+      console.log(colors.dim('\n  Full canon at: ~/arcanea-main/.claude/lore/ARCANEA_CANON.md\n'));
     }
 
     if (action === 'search' && query) {
       const spinner = ora(`Searching for "${query}"...`).start();
       setTimeout(() => {
         spinner.succeed(`Found results for "${query}"`);
-        console.log(colors.dim('\n  (Semantic search requires platform connection)\n'));
-      }, 1000);
+        console.log(colors.dim('\n  (Full semantic search requires platform connection)\n'));
+      }, 800);
+    }
+
+    if (action === 'library') {
+      console.log(colors.gold('\nTHE LIBRARY OF ARCANEA\n'));
+      console.log(chalk.dim('  17 Collections, 34+ Texts of Wisdom'));
+      console.log('');
+      console.log('  Collections include:');
+      console.log('  - The Scrolls of Foundation');
+      console.log('  - The Flames of Transformation');
+      console.log('  - The Waters of Flow');
+      console.log('  - The Winds of Vision');
+      console.log('  - The Codex of the Arcane');
+      console.log(colors.dim('\n  Full library at: ~/arcanea-main/packages/lore/library/\n'));
     }
   });
 
@@ -256,36 +472,89 @@ program
     console.log(banner);
 
     if (!workflow) {
-      console.log(colors.gold('\n⚔️ Available Quests:\n'));
+      console.log(colors.gold('\nAvailable Quests:\n'));
       console.log('  aios quest character-creation  - Create a character with full council');
       console.log('  aios quest world-building      - Build a world systematically');
       console.log('  aios quest library-expansion   - Add new Library content');
       console.log('  aios quest arc-cycle           - Complete creative Arc');
+      console.log('  aios quest transformation      - Fire Gate transformation ritual');
       return;
     }
 
     const spinner = ora(`Initiating ${workflow} quest...`).start();
     setTimeout(() => {
       spinner.succeed(colors.gold(`Quest "${workflow}" initiated!`));
-      console.log(colors.dim('\n  (Quest workflows require full AIOS implementation)\n'));
-    }, 1000);
+
+      if (workflow === 'transformation') {
+        console.log(chalk.dim('\nLoading Fire Gate Transformation Ritual...'));
+        const skill = loadSkill('fire', 'transform');
+        if (skill) {
+          console.log('\n' + skill);
+        }
+      } else {
+        console.log(colors.dim('\n  (Quest workflows require full AIOS implementation)\n'));
+      }
+    }, 800);
   });
 
-// Wisdom helper
-function getGuardianWisdom(guardian) {
-  const wisdoms = {
-    lyssandria: "You belong because you are here. Your presence is your credential.",
-    leyla: "The river finds its way. Your creativity will too.",
-    draconia: "Fear is fuel. Let it ignite your fire.",
-    maylinn: "Love heals all. Start with loving yourself.",
-    alera: "Truth liberates. Speak what needs speaking.",
-    lyria: "Vision guides the way. Trust what you see.",
-    aiyami: "From above, all is clear. Rise to the highest view.",
-    elara: "Shift the lens, shift the world.",
-    ino: "Together, we are whole.",
-    shinkami: "All is One. From Source, all flows."
-  };
-  return wisdoms[guardian] || "The Guardian awaits your question.";
-}
+// Serve command (MCP Server)
+program
+  .command('serve')
+  .description('Start AIOS as an MCP server (Model Context Protocol)')
+  .option('--transport <type>', 'Transport type (stdio|http)', 'stdio')
+  .option('--port <port>', 'Port for HTTP transport', '3333')
+  .action(async (options) => {
+    if (options.transport === 'stdio') {
+      // Start MCP server over stdio - no banner, just JSON-RPC
+      try {
+        const { runStdioServer } = require('../dist/mcp-server.js');
+        await runStdioServer();
+      } catch (error) {
+        console.error('Error starting MCP server:', error.message);
+        console.error('Make sure to run `npm run build` first.');
+        process.exit(1);
+      }
+    } else if (options.transport === 'http') {
+      console.log(banner);
+      console.log(colors.teal(`\nStarting AIOS MCP Server on port ${options.port}...\n`));
+      console.log(colors.gold('MCP Server Ready'));
+      console.log(chalk.dim(`\nAdd to Claude Code with:`));
+      console.log(chalk.dim(`  claude mcp add --transport http aios http://localhost:${options.port}/mcp\n`));
+      console.log(colors.dim('(HTTP transport requires full implementation)\n'));
+    } else {
+      console.log(colors.fire(`\nUnknown transport: ${options.transport}`));
+      console.log(chalk.dim('Use: stdio or http\n'));
+    }
+  });
+
+// Status command
+program
+  .command('status')
+  .description('Show AIOS status in current project')
+  .action(async () => {
+    console.log(banner);
+
+    const configPath = path.join(process.cwd(), '.aios', 'config.json');
+
+    if (!fs.existsSync(configPath)) {
+      console.log(colors.fire('\nAIOS is not initialized in this project.\n'));
+      console.log(chalk.dim('Run `aios init` to initialize.\n'));
+      return;
+    }
+
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+
+      console.log(colors.teal('\nAIOS Status:\n'));
+      console.log(`  Version: ${config.version}`);
+      console.log(`  Gates Unlocked: ${config.gates_unlocked.join(', ')}`);
+      console.log(`  Active Guardian: ${config.active_guardian || 'None'}`);
+      console.log(`  Swarm Topology: ${config.swarm_config?.topology || 'hierarchical'}`);
+      console.log(`  Coordinator: ${config.swarm_config?.coordinator || 'shinkami'}`);
+      console.log('');
+    } catch (e) {
+      console.log(colors.fire('\nError reading AIOS config.\n'));
+    }
+  });
 
 program.parse();
