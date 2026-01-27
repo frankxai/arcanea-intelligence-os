@@ -672,7 +672,7 @@ program
     }
 
     try {
-      const { createGeminiService, GATE_VISUAL_STYLES } = require('../dist/infogenius/index.js');
+      const { createGeminiService, createPromptOnlyService, GATE_VISUAL_STYLES } = require('../dist/infogenius/index.js');
 
       const gate = options.gate || 'source';
       const gateStyle = GATE_VISUAL_STYLES[gate];
@@ -682,9 +682,11 @@ program
         return;
       }
 
-      const spinner = ora(`Generating ${type} visualization...`).start();
+      // Use prompt-only mode if no API key or --prompt-only flag
+      const promptOnly = options.promptOnly || !process.env.GEMINI_API_KEY;
+      const spinner = ora(`${promptOnly ? 'Creating' : 'Generating'} ${type} visualization...`).start();
 
-      const service = createGeminiService();
+      const service = promptOnly ? createPromptOnlyService() : createGeminiService();
 
       let result;
       switch (type) {
@@ -727,12 +729,12 @@ program
           return;
       }
 
-      spinner.succeed(colors.teal(`${type.charAt(0).toUpperCase() + type.slice(1)} visualization generated!`));
+      spinner.succeed(colors.teal(`${type.charAt(0).toUpperCase() + type.slice(1)} visualization ${promptOnly ? 'prompt created' : 'generated'}!`));
 
       console.log(`
 ${colors.gold('═'.repeat(60))}
 
-  ${colors.purple(type.toUpperCase())} VISUALIZATION
+  ${colors.purple(type.toUpperCase())} VISUALIZATION ${promptOnly ? colors.fire('(PROMPT ONLY)') : ''}
 
   Subject: ${name || 'Guardian Portrait'}
   Gate: ${gate} (${gateStyle.guardian}, ${gateStyle.frequency})
@@ -746,6 +748,7 @@ ${chalk.dim(result.prompt.split('\n').map(l => '  ' + l).join('\n'))}
 
 ${colors.gold('═'.repeat(60))}
 
+${promptOnly ? chalk.dim('PROMPT ONLY MODE - Set GEMINI_API_KEY for actual image generation.') : ''}
 ${chalk.dim('Use this prompt with Gemini, DALL-E, or Midjourney for image generation.')}
 ${chalk.dim('Or use the MCP tools: infogenius_generate_' + type)}
 `);

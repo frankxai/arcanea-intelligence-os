@@ -124,17 +124,25 @@ export interface GeneratedImage {
   prompt: string;
   gate?: GateName;
   timestamp: Date;
+  promptOnly?: boolean;
 }
 
 /**
  * Gemini Vision Service
  */
 export class GeminiVisionService {
-  private client: GoogleGenerativeAI;
-  private model: GenerativeModel;
+  private client: GoogleGenerativeAI | null = null;
+  private model: GenerativeModel | null = null;
+  private promptOnlyMode: boolean = false;
 
-  constructor(apiKey?: string) {
+  constructor(apiKey?: string, promptOnly?: boolean) {
     const key = apiKey || process.env.GEMINI_API_KEY;
+
+    if (promptOnly) {
+      this.promptOnlyMode = true;
+      return;
+    }
+
     if (!key) {
       throw new Error('GEMINI_API_KEY is required');
     }
@@ -156,6 +164,18 @@ export class GeminiVisionService {
     options: GenerationOptions = {}
   ): Promise<GeneratedImage> {
     const enhancedPrompt = this.enhancePrompt(basePrompt, options);
+
+    // Prompt-only mode - return just the prompt without calling API
+    if (this.promptOnlyMode || !this.model) {
+      return {
+        data: Buffer.from(''),
+        mimeType: 'text/plain',
+        prompt: enhancedPrompt,
+        gate: options.gate,
+        timestamp: new Date(),
+        promptOnly: true,
+      };
+    }
 
     try {
       // For now, we'll create a text response describing the image
@@ -380,7 +400,16 @@ QUALITY: Museum-quality illuminated manuscript
 
 /**
  * Create a Gemini Vision Service instance
+ * @param apiKey Optional API key (uses env var if not provided)
+ * @param promptOnly If true, only generates prompts without calling API
  */
-export function createGeminiService(apiKey?: string): GeminiVisionService {
-  return new GeminiVisionService(apiKey);
+export function createGeminiService(apiKey?: string, promptOnly?: boolean): GeminiVisionService {
+  return new GeminiVisionService(apiKey, promptOnly);
+}
+
+/**
+ * Create a prompt-only service (no API key needed)
+ */
+export function createPromptOnlyService(): GeminiVisionService {
+  return new GeminiVisionService(undefined, true);
 }

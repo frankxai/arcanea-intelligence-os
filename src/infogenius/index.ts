@@ -10,6 +10,7 @@
 export {
   GeminiVisionService,
   createGeminiService,
+  createPromptOnlyService,
   GATE_VISUAL_STYLES,
   type GateName,
   type GenerationOptions,
