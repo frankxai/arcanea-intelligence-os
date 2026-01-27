@@ -527,6 +527,104 @@ program
     }
   });
 
+// Watch command (Artifact Flow Daemon)
+program
+  .command('watch')
+  .description('Start artifact flow watcher daemon')
+  .option('-p, --paths <paths...>', 'Paths to watch (comma-separated)')
+  .option('-s, --studio <path>', 'Arcanea Studio path', process.env.ARCANEA_STUDIO_PATH || path.join(require('os').homedir(), 'arcanea-studio'))
+  .option('-q, --quiet', 'Quiet mode - only show errors')
+  .action(async (options) => {
+    if (!options.quiet) {
+      console.log(banner);
+      console.log(colors.teal('\nStarting Artifact Flow Watcher...\n'));
+    }
+
+    try {
+      const { createWatcher, createStorage } = require('../dist/artifact-flow/index.js');
+
+      // Initialize storage
+      const storage = createStorage(options.studio);
+      await storage.initialize();
+
+      if (!options.quiet) {
+        console.log(colors.gold(`Studio: ${options.studio}`));
+      }
+
+      // Determine watch paths
+      let watchPaths = options.paths || [];
+      if (watchPaths.length === 0) {
+        // Default watch paths
+        const home = require('os').homedir();
+        watchPaths = [
+          path.join(home, 'Arcanea'),
+          path.join(home, 'arcanea-main'),
+          path.join(home, 'arcanea-intelligence-os'),
+        ].filter(p => fs.existsSync(p));
+
+        if (watchPaths.length === 0) {
+          console.log(colors.fire('\nNo watch paths found. Specify with --paths\n'));
+          process.exit(1);
+        }
+      }
+
+      if (!options.quiet) {
+        console.log(chalk.dim('\nWatching:'));
+        watchPaths.forEach(p => console.log(chalk.dim(`  - ${p}`)));
+        console.log('');
+      }
+
+      // Create and start watcher
+      const watcher = createWatcher({ watchPaths });
+      watcher.connectStorage(storage);
+
+      watcher.on('file', (event) => {
+        if (!options.quiet) {
+          const icon = event.type === 'add' ? '+' : event.type === 'change' ? '~' : '-';
+          console.log(chalk.dim(`[${icon}] ${event.path}`));
+        }
+      });
+
+      watcher.on('artifact', ({ artifact, classification }) => {
+        console.log(colors.gold(`✓ Stored: ${artifact.fileName}`));
+        console.log(chalk.dim(`  Category: ${artifact.category} (${Math.round(classification.confidence * 100)}%)`));
+        if (artifact.guardian) {
+          console.log(chalk.dim(`  Guardian: ${artifact.guardian}`));
+        }
+      });
+
+      watcher.on('low-confidence', ({ event, classification }) => {
+        if (!options.quiet) {
+          console.log(colors.fire(`? Low confidence: ${path.basename(event.path)}`));
+          console.log(chalk.dim(`  ${classification.category} (${Math.round(classification.confidence * 100)}%)`));
+        }
+      });
+
+      watcher.on('error', (error) => {
+        console.error(colors.fire(`Error: ${error.message}`));
+      });
+
+      watcher.on('ready', () => {
+        console.log(colors.teal('\n✓ Watcher ready. Press Ctrl+C to stop.\n'));
+      });
+
+      await watcher.start();
+
+      // Handle graceful shutdown
+      process.on('SIGINT', async () => {
+        console.log(colors.gold('\n\nStopping watcher...'));
+        await watcher.stop();
+        console.log(colors.teal('Goodbye!\n'));
+        process.exit(0);
+      });
+
+    } catch (error) {
+      console.error(colors.fire(`\nError: ${error.message}`));
+      console.error(chalk.dim('Make sure to run `npm run build` first.\n'));
+      process.exit(1);
+    }
+  });
+
 // Status command
 program
   .command('status')

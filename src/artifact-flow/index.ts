@@ -43,6 +43,9 @@ export { ArtifactClassifier, getClassifier } from './classifier';
 // Storage exports
 export { ArtifactStorage, createStorage } from './storage';
 
+// Watcher exports
+export { ArtifactWatcher, createWatcher, startWatcherDaemon } from './watcher';
+
 // MCP tool exports
 export { ARTIFACT_TOOLS, createToolHandlers } from './mcp-tools';
 export type { MCPTool, ToolHandler } from './mcp-tools';
