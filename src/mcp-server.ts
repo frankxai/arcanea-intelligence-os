@@ -32,6 +32,13 @@ import {
 } from './artifact-flow/mcp-tools';
 import { createStorage, ArtifactClassifier, getClassifier } from './artifact-flow';
 
+// Infogenius imports
+import {
+  INFOGENIUS_TOOLS,
+  createInfogeniusHandlers,
+  GATE_VISUAL_STYLES,
+} from './infogenius';
+
 // =============================================================================
 // MCP PROTOCOL TYPES (Subset for stdio transport)
 // =============================================================================
@@ -259,10 +266,14 @@ export const TOOLS: MCPTool[] = [
     },
   },
   // === ARTIFACT FLOW TOOLS === (added dynamically below)
+  // === INFOGENIUS VISUAL TOOLS === (added dynamically below)
 ];
 
 // Add artifact flow tools
 TOOLS.push(...ARTIFACT_TOOLS as unknown as MCPTool[]);
+
+// Add infogenius visual tools
+TOOLS.push(...INFOGENIUS_TOOLS as unknown as MCPTool[]);
 
 // =============================================================================
 // RESOURCE DEFINITIONS
@@ -622,6 +633,31 @@ export async function handleToolCall(
             // Initialize storage on first use
             await storage.initialize();
             const result = await artifactHandlers[name](args);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2),
+              }],
+            };
+          } catch (err) {
+            const error = err as Error;
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({ error: error.message }),
+              }],
+            };
+          }
+        }
+      }
+
+      // Check if it's an infogenius visual tool
+      if (name.startsWith('infogenius_')) {
+        const infogeniusHandlers = createInfogeniusHandlers();
+
+        if (infogeniusHandlers[name]) {
+          try {
+            const result = await infogeniusHandlers[name](args);
             return {
               content: [{
                 type: 'text',

@@ -625,6 +625,141 @@ program
     }
   });
 
+// Visualize command (Infogenius)
+program
+  .command('viz')
+  .description('Visual generation with Arcanea Infogenius')
+  .argument('[type]', 'Type: info, portrait, guardian, map, scroll')
+  .argument('[name]', 'Subject name or topic')
+  .option('-g, --gate <gate>', 'Gate alignment for visual theming')
+  .option('-e, --element <element>', 'Primary element')
+  .option('-s, --style <style>', 'Visual style (portrait, full, action, epic)')
+  .option('-t, --type <type>', 'Sub-type (city, realm, sanctuary, prophecy, history, etc.)')
+  .option('-o, --output <path>', 'Output path for generated image')
+  .option('--prompt-only', 'Only generate the prompt, do not generate image')
+  .action(async (type, name, options) => {
+    console.log(banner);
+
+    if (!type) {
+      console.log(colors.purple('\nArcanea Infogenius - Visual Intelligence\n'));
+      console.log(chalk.dim('  "Through the Gates we see. With the Guardians we create. In images, we manifest."\n'));
+      console.log(colors.teal('Visual Generation Types:\n'));
+      console.log(`  ${colors.gold('aios viz info <topic>')}        Generate Guardian-themed infographic`);
+      console.log(`  ${colors.gold('aios viz portrait <name>')}     Generate character card / trading card`);
+      console.log(`  ${colors.gold('aios viz guardian <name>')}     Generate official Guardian portrait`);
+      console.log(`  ${colors.gold('aios viz map <location>')}      Generate fantasy location map`);
+      console.log(`  ${colors.gold('aios viz scroll <title>')}      Generate illuminated lore scroll`);
+      console.log('');
+      console.log(chalk.dim('Options:'));
+      console.log(chalk.dim('  -g, --gate <gate>      Gate alignment (foundation, flow, fire, heart, voice, sight, crown, shift, unity, source)'));
+      console.log(chalk.dim('  -e, --element <element> Primary element (Fire, Water, Earth, Wind, Void, Light, Arcane)'));
+      console.log(chalk.dim('  -s, --style <style>    Visual style'));
+      console.log(chalk.dim('  --prompt-only          Generate prompt without image'));
+      console.log('');
+      console.log(colors.teal('Examples:'));
+      console.log(chalk.dim('  aios viz info "The Ten Gates" --gate source'));
+      console.log(chalk.dim('  aios viz guardian draconia --style epic'));
+      console.log(chalk.dim('  aios viz portrait "Kael Forgeborn" --gate fire --element Fire'));
+      console.log(chalk.dim('  aios viz map "Citadel of Lumina" --type city'));
+      console.log(chalk.dim('  aios viz scroll "The Convergence" --type prophecy --gate source\n'));
+      return;
+    }
+
+    if (!name && type !== 'guardian') {
+      console.log(colors.fire(`\nPlease provide a name/topic for the ${type} visualization.\n`));
+      console.log(chalk.dim(`Example: aios viz ${type} "Your Topic Here"\n`));
+      return;
+    }
+
+    try {
+      const { createGeminiService, GATE_VISUAL_STYLES } = require('../dist/infogenius/index.js');
+
+      const gate = options.gate || 'source';
+      const gateStyle = GATE_VISUAL_STYLES[gate];
+      if (!gateStyle) {
+        console.log(colors.fire(`\nInvalid gate: ${gate}\n`));
+        console.log(chalk.dim('Valid gates: ' + Object.keys(GATE_VISUAL_STYLES).join(', ')));
+        return;
+      }
+
+      const spinner = ora(`Generating ${type} visualization...`).start();
+
+      const service = createGeminiService();
+
+      let result;
+      switch (type) {
+        case 'info':
+          result = await service.generateInfoGraphic(name, [], gate);
+          break;
+
+        case 'portrait':
+          const element = options.element || 'Arcane';
+          result = await service.generateCharacterCard(name, gate, element, []);
+          break;
+
+        case 'guardian':
+          const guardianName = name?.toLowerCase() || options.gate;
+          if (!guardianName) {
+            spinner.fail('Please provide a Guardian name');
+            console.log(chalk.dim('\nAvailable Guardians:'));
+            Object.values(GATE_VISUAL_STYLES).forEach(s => {
+              console.log(chalk.dim(`  - ${s.guardian.toLowerCase()}`));
+            });
+            return;
+          }
+          const style = options.style || 'portrait';
+          result = await service.generateGuardianPortrait(guardianName, style);
+          break;
+
+        case 'map':
+          const locationType = options.type || 'city';
+          result = await service.generateLocationMap(name, locationType, gate);
+          break;
+
+        case 'scroll':
+          const scrollType = options.type || 'teaching';
+          const content = name; // Use name as content for now
+          result = await service.generateLoreScroll(name, content, scrollType, gate);
+          break;
+
+        default:
+          spinner.fail(`Unknown visualization type: ${type}`);
+          return;
+      }
+
+      spinner.succeed(colors.teal(`${type.charAt(0).toUpperCase() + type.slice(1)} visualization generated!`));
+
+      console.log(`
+${colors.gold('═'.repeat(60))}
+
+  ${colors.purple(type.toUpperCase())} VISUALIZATION
+
+  Subject: ${name || 'Guardian Portrait'}
+  Gate: ${gate} (${gateStyle.guardian}, ${gateStyle.frequency})
+  Style: ${gateStyle.artisticStyle}
+
+${colors.gold('─'.repeat(60))}
+
+  ${colors.teal('GENERATED PROMPT:')}
+
+${chalk.dim(result.prompt.split('\n').map(l => '  ' + l).join('\n'))}
+
+${colors.gold('═'.repeat(60))}
+
+${chalk.dim('Use this prompt with Gemini, DALL-E, or Midjourney for image generation.')}
+${chalk.dim('Or use the MCP tools: infogenius_generate_' + type)}
+`);
+
+    } catch (error) {
+      console.error(colors.fire(`\nError: ${error.message}`));
+      if (error.message.includes('GEMINI_API_KEY')) {
+        console.log(chalk.dim('\nSet GEMINI_API_KEY environment variable for image generation.\n'));
+      } else {
+        console.log(chalk.dim('Make sure to run `npm run build` first.\n'));
+      }
+    }
+  });
+
 // Status command
 program
   .command('status')

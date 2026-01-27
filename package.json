@@ -9,8 +9,8 @@
     "aios": "./bin/aios.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts --format cjs,esm --dts --watch",
     "serve": "node bin/aios.js serve",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
@@ -32,6 +32,11 @@
       "types": "./dist/artifact-flow/index.d.ts",
       "import": "./dist/artifact-flow/index.mjs",
       "require": "./dist/artifact-flow/index.js"
+    },
+    "./infogenius": {
+      "types": "./dist/infogenius/index.d.ts",
+      "import": "./dist/infogenius/index.mjs",
+      "require": "./dist/infogenius/index.js"
     }
   },
   "keywords": [
@@ -79,6 +84,7 @@
     "vitest": "^1.2.0"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "chalk": "^4.1.2",
     "chokidar": "^5.0.0",
     "commander": "^12.0.0",
