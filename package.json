@@ -9,13 +9,30 @@
     "aios": "./bin/aios.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/mcp-server.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/mcp-server.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts --format cjs,esm --dts --watch",
     "serve": "node bin/aios.js serve",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "prepublishOnly": "npm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./mcp-server": {
+      "types": "./dist/mcp-server.d.ts",
+      "import": "./dist/mcp-server.mjs",
+      "require": "./dist/mcp-server.js"
+    },
+    "./artifact-flow": {
+      "types": "./dist/artifact-flow/index.d.ts",
+      "import": "./dist/artifact-flow/index.mjs",
+      "require": "./dist/artifact-flow/index.js"
+    }
   },
   "keywords": [
     "arcanea",

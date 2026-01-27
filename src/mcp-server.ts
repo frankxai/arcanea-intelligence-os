@@ -25,6 +25,13 @@ import {
   type GateName,
 } from './index';
 
+// Artifact Flow imports
+import {
+  ARTIFACT_TOOLS,
+  createToolHandlers as createArtifactToolHandlers,
+} from './artifact-flow/mcp-tools';
+import { createStorage, ArtifactClassifier, getClassifier } from './artifact-flow';
+
 // =============================================================================
 // MCP PROTOCOL TYPES (Subset for stdio transport)
 // =============================================================================
@@ -251,7 +258,11 @@ export const TOOLS: MCPTool[] = [
       required: ['content'],
     },
   },
+  // === ARTIFACT FLOW TOOLS === (added dynamically below)
 ];
+
+// Add artifact flow tools
+TOOLS.push(...ARTIFACT_TOOLS as unknown as MCPTool[]);
 
 // =============================================================================
 // RESOURCE DEFINITIONS
@@ -595,13 +606,47 @@ export async function handleToolCall(
       };
     }
 
-    default:
+    default: {
+      // Check if it's an artifact flow tool
+      if (name.startsWith('arcanea_')) {
+        const studioPath = process.env.ARCANEA_STUDIO_PATH ||
+          (process.platform === 'win32'
+            ? 'C:\\Users\\frank\\arcanea-studio'
+            : `${process.env.HOME}/arcanea-studio`);
+
+        const storage = createStorage(studioPath);
+        const artifactHandlers = createArtifactToolHandlers(storage);
+
+        if (artifactHandlers[name]) {
+          try {
+            // Initialize storage on first use
+            await storage.initialize();
+            const result = await artifactHandlers[name](args);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2),
+              }],
+            };
+          } catch (err) {
+            const error = err as Error;
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({ error: error.message }),
+              }],
+            };
+          }
+        }
+      }
+
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({ error: `Unknown tool: ${name}` }),
         }],
       };
+    }
   }
 }
 
