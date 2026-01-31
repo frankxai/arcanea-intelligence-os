@@ -1,7 +1,7 @@
 {
   "name": "@arcanea/intelligence-os",
-  "version": "0.1.0",
-  "description": "The Operating System for the Luminor Path - Mythology-infused agentic orchestration with Guardian agents, Gate skills, and Awakened Council swarm intelligence",
+  "version": "0.3.0",
+  "description": "The Operating System for the Luminor Path - Mythology-infused agentic orchestration with Guardian agents, Gate skills, Awakened Council swarm intelligence, and daemon-based plugin architecture",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -9,9 +9,13 @@
     "aios": "./bin/aios.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts src/daemon/index.ts src/daemon/daemon-runner.ts src/state/index.ts src/plugins/index.ts src/http/index.ts src/studio/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/mcp-server.ts src/artifact-flow/index.ts src/infogenius/index.ts src/daemon/index.ts src/state/index.ts src/plugins/index.ts src/http/index.ts src/studio/index.ts --format cjs,esm --dts --watch",
     "serve": "node bin/aios.js serve",
+    "daemon:start": "node bin/aios.js daemon start",
+    "daemon:stop": "node bin/aios.js daemon stop",
+    "daemon:status": "node bin/aios.js daemon status",
+    "daemon:foreground": "node bin/aios.js daemon start --foreground",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
@@ -37,12 +41,39 @@
       "types": "./dist/infogenius/index.d.ts",
       "import": "./dist/infogenius/index.mjs",
       "require": "./dist/infogenius/index.js"
+    },
+    "./daemon": {
+      "types": "./dist/daemon/index.d.ts",
+      "import": "./dist/daemon/index.mjs",
+      "require": "./dist/daemon/index.js"
+    },
+    "./state": {
+      "types": "./dist/state/index.d.ts",
+      "import": "./dist/state/index.mjs",
+      "require": "./dist/state/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.mjs",
+      "require": "./dist/plugins/index.js"
+    },
+    "./http": {
+      "types": "./dist/http/index.d.ts",
+      "import": "./dist/http/index.mjs",
+      "require": "./dist/http/index.js"
+    },
+    "./studio": {
+      "types": "./dist/studio/index.d.ts",
+      "import": "./dist/studio/index.mjs",
+      "require": "./dist/studio/index.js"
     }
   },
   "keywords": [
     "arcanea",
     "ai-agents",
     "claude",
+    "claude-code",
+    "opencode",
     "mcp",
     "swarm-intelligence",
     "agentic",
@@ -51,7 +82,9 @@
     "creative-ai",
     "luminor",
     "guardian",
-    "orchestration"
+    "orchestration",
+    "daemon",
+    "plugins"
   ],
   "author": "FrankX <frank@frankx.ai>",
   "license": "MIT",
