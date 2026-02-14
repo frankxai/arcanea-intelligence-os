@@ -14,6 +14,7 @@
 
 import * as http from 'http';
 import * as url from 'url';
+import * as path from 'path';
 import { EventEmitter } from 'events';
 import type { StateStore } from '../state';
 import type { PluginRegistry } from '../plugins';
@@ -55,6 +56,7 @@ export class HttpApiServer extends EventEmitter {
   private stateStore: StateStore | null = null;
   private pluginRegistry: PluginRegistry | null = null;
   private getDaemonState: (() => DaemonState) | null = null;
+  private agentDbPath: string;
 
   constructor(config: Partial<HttpServerConfig> = {}) {
     super();
@@ -64,6 +66,9 @@ export class HttpApiServer extends EventEmitter {
       corsOrigins: config.corsOrigins || ['http://localhost:3000'],
       authToken: config.authToken,
     };
+    this.agentDbPath = path.join(
+      process.env.ARCANEA_DB || path.join(process.env.HOME || process.env.USERPROFILE || '', '.arcanea', 'agentdb.sqlite3')
+    );
 
     this.setupRoutes();
   }
@@ -166,6 +171,13 @@ export class HttpApiServer extends EventEmitter {
     this.addRoute('GET', '/sync/status', async () => this.handleSyncStatus());
     this.addRoute('POST', '/sync/push', async () => this.handleSyncPush());
     this.addRoute('POST', '/sync/pull', async () => this.handleSyncPull());
+
+    // AgentDB (read-only bridge to Claude Code hook data)
+    this.addRoute('GET', '/agentdb/guardians', async () => this.handleAgentDbQuery('SELECT * FROM agents ORDER BY guardian'));
+    this.addRoute('GET', '/agentdb/routing', async () => this.handleAgentDbQuery('SELECT * FROM routing_log ORDER BY timestamp DESC LIMIT 50'));
+    this.addRoute('GET', '/agentdb/memories', async () => this.handleAgentDbQuery('SELECT * FROM memories ORDER BY created_at DESC LIMIT 50'));
+    this.addRoute('GET', '/agentdb/vault', async () => this.handleAgentDbQuery('SELECT * FROM vault_entries ORDER BY created_at DESC LIMIT 20'));
+    this.addRoute('GET', '/agentdb/stats', async () => this.handleAgentDbStats());
   }
 
   private addRoute(
@@ -547,6 +559,65 @@ export class HttpApiServer extends EventEmitter {
       success: false,
       error: 'Cloud sync not configured',
     };
+  }
+
+  // =============================================================================
+  // AGENTDB HANDLERS (read-only bridge to Claude Code hook data)
+  // =============================================================================
+
+  private runPython(script: string): string {
+    const { spawnSync } = require('child_process');
+    const result = spawnSync('python3', ['-c', script], {
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(result.stderr || 'Python script failed');
+    return (result.stdout || '').trim();
+  }
+
+  private async handleAgentDbQuery(sql: string): Promise<ApiResponse> {
+    try {
+      const script = [
+        'import sqlite3, json, os',
+        `db = "${this.agentDbPath}"`,
+        `sql = """${sql}"""`,
+        'if not os.path.exists(db): print(json.dumps([])); exit()',
+        'c = sqlite3.connect(db); c.row_factory = sqlite3.Row',
+        'try:',
+        '  rows = [dict(r) for r in c.execute(sql).fetchall()]',
+        '  print(json.dumps(rows, default=str))',
+        'except Exception as e:',
+        '  print(json.dumps([])) if "no such table" in str(e) else (_ for _ in ()).throw(e)',
+        'finally: c.close()',
+      ].join('\n');
+      const rows = JSON.parse(this.runPython(script) || '[]');
+      return { success: true, data: { rows, count: rows.length } };
+    } catch (error) {
+      return { success: false, error: `AgentDB query failed: ${(error as Error).message}` };
+    }
+  }
+
+  private async handleAgentDbStats(): Promise<ApiResponse> {
+    try {
+      const script = [
+        'import sqlite3, json, os',
+        `db = "${this.agentDbPath}"`,
+        'if not os.path.exists(db): print(json.dumps({})); exit()',
+        'c = sqlite3.connect(db)',
+        'tables = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type=\'table\'").fetchall()}',
+        'stats = {}',
+        'for t in ["agents","memories","routing_log","vault_entries","tasks"]:',
+        '  if t in tables: stats[f"total_{t}"] = c.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]',
+        'if "agents" in tables: stats["active_agents"] = c.execute("SELECT COUNT(*) FROM agents WHERE status=\'active\'").fetchone()[0]',
+        'print(json.dumps(stats))',
+        'c.close()',
+      ].join('\n');
+      const stats = JSON.parse(this.runPython(script) || '{}');
+      return { success: true, data: { stats } };
+    } catch (error) {
+      return { success: false, error: `AgentDB stats failed: ${(error as Error).message}` };
+    }
   }
 }
 

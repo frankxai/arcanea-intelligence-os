@@ -103,7 +103,7 @@ All outputs should be validated against:
 - Canonical Gate frequencies
 - Guardian-to-Awakened mappings
 - Five Elements (Fire, Water, Earth, Wind, Arcane)
-- Arcanea voice: elevated but accessible, mythic but practical
+- Arcanea voice: arcane and authoritative, superintelligent yet accessible (living universe, not platform)
 
 ---
 

@@ -12,8 +12,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as net from 'net';
 import { EventEmitter } from 'events';
+import { HttpApiServer } from '../http/index.js';
+import { StateStore } from '../state/index.js';
+import { PluginRegistry } from '../plugins/index.js';
 
 // =============================================================================
 // DAEMON CONFIGURATION
@@ -85,10 +87,11 @@ export interface DaemonState {
 export class AIOSDaemon extends EventEmitter {
   private config: DaemonConfig;
   private state: DaemonState;
-  private httpServer: net.Server | null = null;
+  private httpServer: HttpApiServer | null = null;
   private mcpServer: any = null;
   private watcher: any = null;
-  private db: any = null;
+  private stateStore: StateStore | null = null;
+  private pluginRegistry: PluginRegistry | null = null;
 
   constructor(config: Partial<DaemonConfig> = {}) {
     super();
@@ -181,16 +184,14 @@ export class AIOSDaemon extends EventEmitter {
 
       // Close HTTP server
       if (this.httpServer) {
-        await new Promise<void>((resolve) => {
-          this.httpServer!.close(() => resolve());
-        });
+        await this.httpServer.stop();
         this.httpServer = null;
       }
 
-      // Close database
-      if (this.db) {
-        this.db.close();
-        this.db = null;
+      // Close state store
+      if (this.stateStore) {
+        this.stateStore.close();
+        this.stateStore = null;
       }
 
       // Remove PID file
@@ -284,73 +285,40 @@ export class AIOSDaemon extends EventEmitter {
   }
 
   private async initDatabase(): Promise<void> {
-    // SQLite initialization will be added by the state module
-    this.log('debug', `Database path: ${this.config.dbPath}`);
+    this.log('debug', `State store path: ${path.dirname(this.config.dbPath)}`);
+    this.stateStore = new StateStore(path.dirname(this.config.dbPath));
+    await this.stateStore.initialize();
+    this.log('info', 'State store initialized');
   }
 
   private async loadPlugins(): Promise<void> {
-    // Plugin loading will be added by the plugins module
     this.log('debug', `Plugin directory: ${this.config.pluginDir}`);
+    this.pluginRegistry = new PluginRegistry(this.config.pluginDir);
+    await this.pluginRegistry.initialize();
+    const plugins = this.pluginRegistry.getPlugins();
+    this.state.plugins.loaded = plugins.length;
+    this.state.plugins.active = plugins.filter(p => p.status === 'active').length;
+    this.log('info', `Plugin registry initialized (${plugins.length} plugins found)`);
   }
 
   private async startHttpServer(): Promise<void> {
-    // HTTP server will be added by the http module
-    // For now, create a basic server that responds to health checks
-    this.httpServer = net.createServer((socket) => {
-      socket.on('data', (data) => {
-        const request = data.toString();
-
-        // Basic HTTP response for health check
-        if (request.includes('GET /health') || request.includes('GET /status')) {
-          const body = JSON.stringify({
-            status: this.state.status,
-            uptime: this.state.startedAt
-              ? Math.floor((Date.now() - this.state.startedAt.getTime()) / 1000)
-              : 0,
-            pid: this.state.pid,
-            connections: this.state.connections,
-            plugins: this.state.plugins,
-          });
-
-          const response = [
-            'HTTP/1.1 200 OK',
-            'Content-Type: application/json',
-            `Content-Length: ${body.length}`,
-            'Connection: close',
-            '',
-            body,
-          ].join('\r\n');
-
-          socket.write(response);
-          socket.end();
-        } else {
-          // 404 for other routes
-          const body = JSON.stringify({ error: 'Not found' });
-          const response = [
-            'HTTP/1.1 404 Not Found',
-            'Content-Type: application/json',
-            `Content-Length: ${body.length}`,
-            'Connection: close',
-            '',
-            body,
-          ].join('\r\n');
-
-          socket.write(response);
-          socket.end();
-        }
-      });
+    this.httpServer = new HttpApiServer({
+      port: this.config.port,
+      host: this.config.host,
     });
 
-    await new Promise<void>((resolve, reject) => {
-      this.httpServer!.listen(this.config.port, this.config.host, () => {
-        resolve();
-      });
-      this.httpServer!.on('error', reject);
-    });
+    // Connect subsystems
+    this.httpServer.connectDaemonState(() => this.getState());
 
-    this.httpServer.on('connection', () => {
-      this.state.connections.http++;
-    });
+    if (this.stateStore) {
+      this.httpServer.connectStateStore(this.stateStore);
+    }
+
+    if (this.pluginRegistry) {
+      this.httpServer.connectPluginRegistry(this.pluginRegistry);
+    }
+
+    await this.httpServer.start();
   }
 
   private async startWatcher(): Promise<void> {

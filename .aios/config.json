@@ -1,0 +1,19 @@
+{
+  "version": "0.1.0",
+  "gates_unlocked": [
+    "foundation",
+    "flow",
+    "fire"
+  ],
+  "active_guardian": null,
+  "swarm_config": {
+    "topology": "hierarchical",
+    "coordinator": "shinkami",
+    "max_agents": 10
+  },
+  "anti_drift": {
+    "canonCheck": true,
+    "frequencyAlignment": true,
+    "voiceConsistency": true
+  }
+}
